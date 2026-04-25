@@ -138,7 +138,7 @@ All code was reviewed, tested, and understood by me before being submitted.
 No code was copy-pasted blindly.
 
 ## Motivation
-This project is inspired by my interest in cooking and my cultural background. It aims to highlight Albanian cuisine while applying computer science concepts such as algorithms, data processing, and web scraping.
+This project is inspired by my interest in cooking and my cultural background. 
  
 ---
  
