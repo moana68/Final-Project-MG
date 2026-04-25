@@ -112,25 +112,31 @@ Recipes sourced by scraping [agroweb.org](https://agroweb.org/tag/gatime-tradici
 ### Libraries
 - [requests](https://requests.readthedocs.io/)
 - [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)
-### AI Assistance (Claude by Anthropic)
-I used Claude throughout this project as a coding assistant. Here is specifically what it helped with:
- 
-- **Project architecture** — Claude suggested splitting the project into `scraper.py`, `recommender.py`, and `main.py`, and explained why separating concerns makes the code cleaner.
-- **scraper.py** — Claude wrote the initial version of the web scraper, including the HTML parsing logic. I reviewed every line and had Claude explain each one to me.
-- **recommender.py** — Claude wrote the initial scoring algorithm structure. I then extended it by adding the user-configurable weights system.
-- **main.py** — Claude wrote the initial input functions, which I reviewed and understood before submitting.
-- **Code explanations** — I asked Claude to explain every line of all three files so I could understand and modify the code confidently.
-All code was reviewed, tested, and understood by me before being submitted. No code was copy-pasted blindly.
- 
----
- 
-## Future Improvements
-- Integration with a weather API (Open-Meteo) for automatic weather detection
-- User ratings system — let users rate recipes after cooking
-- Market price integration for smarter budget matching
-- Building a simple web interface for user interaction
----
- 
+
+  
+### AI Assistance
+I used GenAI throughout this project as a coding assistant. Here is specifically
+what it helped with:
+
+- **Project architecture** — GenAI suggested splitting the project into scraper.py,
+  recommender.py, and main.py, and explained why separating concerns makes the code
+  cleaner.
+
+- **Coding** — GenAI mainly wrote the initial version of the web scraper, including the
+  HTML parsing logic (the lambda function that finds ingredient section headers, and
+  the sibling-walking loop that collects ingredients underneath them). I reviewed every
+  line and changed things as I saw fit,and GenAI explained each one to me so I understand
+  how it works.
+
+- **Code explanations** — I asked GenAI to explain any code that was written by it (mainly in
+  scraper.py).
+
+- **Aesthetics** - I asked GenAI to also make the user interface more interesting and readable.
+  The way I wrote it the user experience was very boring and the text was not really understandable.
+
+All code was reviewed, tested, and understood by me before being submitted.
+No code was copy-pasted blindly.
+
 ## Motivation
 This project is inspired by my interest in cooking and my cultural background. It aims to highlight Albanian cuisine while applying computer science concepts such as algorithms, data processing, and web scraping.
  
