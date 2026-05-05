@@ -1,6 +1,7 @@
 ###recommender.py
 
 import json
+from history import load_history, apply_history_penalty
 
 #default argument recipes.json
 def load_recipes(path="recipes.json"):
@@ -50,27 +51,46 @@ def recommend(recipes, weather, budget, available_ingredients,
                 score += weights["ingredients"]
 
         if meal_type and meal_type in recipe.get("meal_type", []):
-            score += weights["meal_type"]        
+            score += weights["meal_type"]
 
         score += recipe.get("rating", 0)
 
         scored.append({**recipe, "score": round(score, 2)})
 
+        history = load_history()
+        scored = apply_history_penalty(scored, history)
+
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored[:3]
 
-
-def print_recommendations(results):
+def print_recommendations(results, weather=None, budget=None,
+                           available_ingredients=None, meal_type=None):
     if not results:
-        print("Nuk u gjet asnjë recetë që përputhet. (No matching recipes found.)")
+        print("Nuk u gjet asnjë recetë që përputhet. / No matching recipes found.")
         return
 
-    print("\n Recetat e rekomanduara (Recommended dishes:)\n")
+    print("\n🍽  Recetat e rekomanduara / Recommended dishes:\n")
     for i, recipe in enumerate(results, 1):
         print(f"  {i}. {recipe['name']}")
         print(f"     Score: {recipe['score']}")
-        print(f"     Weather: {recipe['weather']}")
-        print(f"     Meal: {', '.join(recipe['meal_type'])}")
+
+        # Build a list of reasons this recipe was recommended
+        reasons = []
+        if weather and recipe.get("weather") == weather:
+            reasons.append(f"✓ Weather match ({weather})")
+        if budget and recipe.get("price") == budget:
+            reasons.append(f"✓ Budget match ({budget})")
+        if meal_type and meal_type in recipe.get("meal_type", []):
+            reasons.append(f"✓ Meal type match ({meal_type})")
+        if available_ingredients:
+            recipe_text = " ".join(recipe.get("ingredients", [])).lower()
+            matched = [ing for ing in available_ingredients if ing.lower() in recipe_text]
+            if matched:
+                reasons.append(f"✓ Ingredients matched: {', '.join(matched)}")
+
+        if reasons:
+            print(f"     Why: {' | '.join(reasons)}")
+
         print(f"     Allergens: {', '.join(recipe['allergens']) or 'none'}")
         print(f"     URL: {recipe['url']}")
         print()
