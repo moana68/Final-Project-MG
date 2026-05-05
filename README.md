@@ -1,147 +1,166 @@
 # Albanian Recipe Recommender
- 
+
 ## Overview
 This project is a personalized recipe recommendation system focused on traditional Albanian cuisine. The program suggests dishes based on user preferences such as weather, budget, available ingredients, meal type, and allergens.
- 
+
 The goal of this project is to combine cultural relevance with algorithmic decision-making to generate useful and realistic meal recommendations. Recipes are scraped automatically from a real Albanian food website, so the dataset is authentic and grows without any manual work.
- 
- 
+
+---
+
 ## Features
 - Recommends Albanian dishes based on:
-  - Weather (cold or warm)
+  - Weather (cold or warm) — entered manually or auto-detected from your city
   - Budget (low, medium, high)
   - Available ingredients
   - Meal type (breakfast, lunch, dinner, dessert)
   - Allergens to avoid
-- Lets the user **rank which criteria matter most**, so scoring reflects their priorities that day
-- Returns the **top 3 best matching recipes** with links to the full recipe
+- Lets the user rank which criteria matter most, so scoring reflects their priorities that day
+- Returns the top 3 best matching recipes with links to the full recipe
+- Shows why each recipe was recommended (which criteria it matched)
 - Uses a scoring algorithm to rank recipes
 - Includes recipe ratings as part of the recommendation logic
-- **Hard allergen filtering** — excluded allergens are removed before scoring, never appearing in results
- 
+- Hard allergen filtering: excluded allergens are removed before scoring, never appearing in results
+- History system: tracks recipes you've cooked and nudges the recommender toward new suggestions
+
+---
+
 ## How It Works
-Recipes are scraped from agroweb.org and stored locally in `recipes.json`. Each recipe has attributes including name, URL, ingredients, allergens, weather suitability, meal type, and rating.
- 
-The program assigns a score to each recipe based on how well it matches the user's input. The user also ranks the criteria by importance, which controls how many points each match is worth:
- 
-| Rank | Points awarded |
-|------|---------------|
-| 1st (most important) | +3.0 |
-| 2nd | +2.5 |
-| 3rd | +2.0 |
-| 4th | +1.5 |
-| Not ranked | +1.0 |
- 
-So if a user ranks budget first, a budget match gives +3 points instead of the default. This makes the recommender adapt to different situations — a tight-budget day versus a "cook whatever fits the weather" day produce different results from the same dataset.
- 
+Recipes are scraped from agroweb.org and stored locally in `recipes.json`. Each recipe has attributes including name, URL, ingredients, allergens, weather suitability, meal type, price tier, and rating.
+
+The program assigns a score to each recipe based on how well it matches the user's input. The user also ranks the criteria by importance, which controls how many points each match is worth.
+
+So if a user ranks budget first, a budget match gives +3 points instead of the default. This makes the recommender adapt to different situations. 
+
 After scoring all recipes, the program:
 1. Removes any recipes containing excluded allergens
 2. Scores the remaining recipes based on weighted criteria
-3. Sorts from highest to lowest score
-4. Returns the top 3 recommendations
+3. Applies a small penalty to recipes already in the user's cooking history
+4. Sorts from highest to lowest score
+5. Returns the top 3 recommendations with reasons
+
 ---
- 
+
 ## Example
- 
+
 ### Input:
-- Weather: cold
+- Weather: cold (auto-detected from city)
 - Budget: low
 - Meal type: lunch
 - Ingredients: mish, patate
 - Allergens to avoid: dairy
 - Priority ranking: ingredients, budget, weather, meal_type
+
 ### Output:
 Recommended dishes might include:
-- Japrakë me Mish të Grirë
+- Japrakë me Mish të Grirë — ✓ Weather match | ✓ Budget match | ✓ Ingredients matched: mish, patate
 - Qeshqek Tradicional
 - Fasule me Mish
+
 ---
- 
+
 ## Technologies Used
 - Python 3
-- `requests` — for making HTTP requests to agroweb.org
+- `requests` — for making HTTP requests to agroweb.org and the weather API
 - `BeautifulSoup4` — for parsing HTML and extracting recipe data
-- `json` — for saving and loading the recipe database
-- Data structures: lists, dictionaries
-- Algorithms: iteration, conditional logic, sorting, web scraping
+- `json` — for saving and loading the recipe database and cooking history
+- Open-Meteo API — free weather API, no key required
+- Data structures: lists, dictionaries, sets
+- Algorithms: iteration, conditional logic, sorting, web scraping, HTML tree navigation
+
 ---
- 
+
 ## Project Structure
 ```
 ├── scraper.py       # Scrapes agroweb.org and saves recipes to recipes.json
 ├── recommender.py   # Scoring algorithm and recommendation logic
+├── weather.py       # Fetches and maps current weather from Open-Meteo API
+├── history.py       # Tracks cooked recipes and applies history penalty
 ├── main.py          # Interactive CLI — what the user runs
 ├── recipes.json     # Auto-generated by scraper (not committed to git)
+├── history.json     # Auto-generated when user logs cooked recipes (not committed to git)
 └── README.md
 ```
- 
+
 ---
- 
+
 ## Setup & Running
- 
+
 ### Requirements
 - Python 3.x
-- An internet connection (only needed for the first run of `scraper.py`)
+- An internet connection (needed for the first run of `scraper.py` and for weather auto-detection)
+
 ### 1. Install dependencies
 ```bash
 pip install requests beautifulsoup4
 ```
- 
+
 ### 2. Build the recipe database (run once)
 ```bash
 python scraper.py
 ```
 This visits agroweb.org, collects all recipes tagged as traditional Albanian dishes, and saves them to `recipes.json`. Takes 1–2 minutes. You only need to do this once, or again later if you want fresh recipes.
- 
+
 ### 3. Run the recommender
 ```bash
 python main.py
 ```
-Follow the prompts. You will be asked about weather, budget, meal type, ingredients, allergens, and which criteria matter most to you today.
- 
+Follow the prompts. You will be asked about:
+- Weather (or auto-detect from your city)
+- Budget
+- Meal type
+- Ingredients you have at home
+- Allergens to avoid
+- Which criteria matter most to you today
+
+After recommendations are shown, you can log which recipes you actually cooked — these get saved to `history.json` and influence future sessions.
+
 ### No API key needed
-This project scrapes agroweb.org directly. Nothing requires signup or credentials.
- 
+This project uses Open-Meteo for weather (free, no account required) and scrapes agroweb.org directly. Nothing requires signup or credentials.
+
 ---
- 
+
 ## Credits & External Contributors
- 
+
 ### Recipes
 Recipes sourced by scraping [agroweb.org](https://agroweb.org/tag/gatime-tradicionale/), an Albanian food and lifestyle website. No content is redistributed — the scraper only stores recipe metadata and ingredient lists locally.
- 
-### Libraries
+
+### Libraries & APIs
 - [requests](https://requests.readthedocs.io/)
 - [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)
+- [Open-Meteo](https://open-meteo.com/) — free weather API
 
-  
 ### AI Assistance
-I used GenAI throughout this project as a coding assistant. Here is specifically
-what it helped with:
-
-- **Project architecture** — GenAI suggested splitting the project into scraper.py,
-  recommender.py, and main.py, and explained why separating concerns makes the code
-  cleaner.
+I used GenAI throughout this project as a coding assistant. Here is specifically what it helped with:
 
 - **Coding** — GenAI mainly wrote the initial version of the web scraper, including the
   HTML parsing logic (the lambda function that finds ingredient section headers, and
-  the sibling-walking loop that collects ingredients underneath them). I reviewed every
-  line and changed things as I saw fit,and GenAI explained each one to me so I understand
-  how it works.
+  the sibling-walking loop that collects ingredients underneath them). It also helped with coding
+  weather.py and history.py. I reviewed every line and changed things as I saw fit,and GenAI 
+  explained each one to me so I understandhow it works.
 
 - **Code explanations** — I asked GenAI to explain any code that was written by it (mainly in
   scraper.py).
 
 - **Aesthetics** - I asked GenAI to also make the user interface more interesting and readable.
-  The way I wrote it the user experience was very boring and the text was not really understandable.
+  The way I wrote it the user experience was very boring and the text was not really understandable. I also
+  asked GenAI to help me write the README.md. I provided all the information I wanted to display here, and
+  GenAI helped organize everything into a readable and aesthetically pleasing file. 
 
 All code was reviewed, tested, and understood by me before being submitted.
 No code was copy-pasted blindly.
 
-## Motivation
-This project is inspired by my interest in cooking and my cultural background. 
- 
 ---
- 
+
+## Future Improvements
+- Market price integration for smarter, real-time budget matching
+- User rating system — score recipes after cooking, updating stored ratings over time
+
+---
+
+## Motivation
+This project is inspired by my interest in cooking and my cultural background. It aims to highlight Albanian cuisine while applying computer science concepts such as algorithms, data processing, and web scraping.
+
+---
+
 ## Author
 Moana Gorezi
- 
