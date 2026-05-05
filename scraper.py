@@ -39,6 +39,32 @@ meal_type_keywords = {
                   "bakllavë", "sheqer", "mjaltë"],
 }
 
+def estimate_price(ingredients):
+    """
+    Estimate recipe cost tier based on ingredient count and expensive keywords.
+    More ingredients generally means more expensive. Certain ingredients
+    (meat, seafood) push a recipe into a higher price tier.
+    """
+    expensive_keywords = ["mish viçi", "mish qengji", "peshk", "karkalec",
+                          "kallamar", "proshutë", "salcice"]
+    cheap_keywords = ["fasule", "patate", "vezë", "miell", "bukë", "lakër"]
+
+    combined = " ".join(ingredients).lower()
+
+    # Hard rules first
+    if any(kw in combined for kw in expensive_keywords):
+        return "high"
+    if any(kw in combined for kw in cheap_keywords) and len(ingredients) <= 6:
+        return "low"
+
+    # Fall back to ingredient count
+    if len(ingredients) <= 5:
+        return "low"
+    elif len(ingredients) <= 9:
+        return "medium"
+    else:
+        return "high"
+
 def get_article_links(url):
     #Collect all recipe article URLs from a page, following pagination.
     links = []
@@ -63,9 +89,8 @@ def get_article_links(url):
 
     return links
 
-
+#Scrape a single recipe page and return a structured dict
 def scrape_recipe(url):
-    """Scrape a single recipe page and return a structured dict."""
     resp = requests.get(url, timeout=10)
     soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -96,7 +121,7 @@ def scrape_recipe(url):
                         ingredients.append(text)
             sibling = sibling.find_next_sibling()
 
-    # Fallback: grab ALL <li> from the article if nothing found above
+    # As fallback we grab ALL <li> from the article if nothing found above
     if not ingredients:
         article = soup.select_one("article") or soup.select_one(".entry-content")
         if article:
@@ -105,7 +130,7 @@ def scrape_recipe(url):
                 if text and len(text) < 120:  # skip nav items
                     ingredients.append(text)
 
-    # --- Auto-tag fields from title + ingredients ---
+    # Auto-tag fields from title + ingredients
     combined_text = (title + " " + " ".join(ingredients)).lower()
 
     allergens = [
@@ -126,7 +151,7 @@ def scrape_recipe(url):
         if any(kw in combined_text for kw in keywords):
             meal_type.append(mtype)
     if not meal_type:
-        meal_type = ["lunch", "dinner"]  # sensible default
+        meal_type = ["lunch", "dinner"]  # default
 
     return {
         "name": title,
@@ -135,8 +160,8 @@ def scrape_recipe(url):
         "allergens": allergens,
         "weather": weather,
         "meal_type": meal_type,
-        "price": "medium",     # placeholder — budget logic lives in recommender
-        "rating": 4.0,         # default; update if you add a user rating system
+        "price": estimate_price(ingredients),
+        "rating": 4.0,         # default
     }
 
 
@@ -158,7 +183,7 @@ def main():
                 print(f"  → Skipped (no ingredients found)")
         except Exception as e:
             print(f"  → Error: {e}")
-        time.sleep(0.8)  # polite delay between requests
+        time.sleep(0.8)  # delay between requests
 
     # Save to JSON
     output_path = "recipes.json"
