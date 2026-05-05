@@ -3,6 +3,8 @@
 #need this for the recipes.json (interact w os)
 import os
 from recommender import load_recipes, recommend, print_recommendations
+from weather import get_current_weather
+from history import load_history, save_to_history, apply_history_penalty
 
 def get_weights_input():
     # The four criteria the user can rank defined here
@@ -37,12 +39,19 @@ def get_weights_input():
 
 
 def get_weather_input():
-    print("\nSi eshte koha sot? (What is the weather like today?)")
+    print("\nSi eshte koha sot? / What is the weather like?")
     print("  1. Cold (ftohte)")
     print("  2. Warm (ngrohte)")
-    print("  3. Any (S'ka rendesi)")
-    #strip removes any spaces or newlines from what the user typed
-    choice = input("Choose (1/2/3): ").strip()
+    print("  3. Any")
+    print("  4. Auto-detect from my location")
+    choice = input("Choose (1/2/3/4): ").strip()
+
+    if choice == "4":
+        city = input("Enter your city: ").strip() or "Tirana"
+        detected = get_current_weather(city)
+        print(f"  Detected weather: {detected}")
+        return detected
+
     return {"1": "cold", "2": "warm", "3": "any"}.get(choice, "any")
 
 
@@ -122,8 +131,25 @@ def main():
     weights=weights,
 )
 
-    print_recommendations(results)
+    print_recommendations(
+    results,
+    weather=weather,
+    budget=budget,
+    available_ingredients=ingredients,
+    meal_type=meal_type,
+)
 
+
+
+    history = load_history()
+    print("\nDid you cook any of these? Enter the number(s) (e.g. 1 or 1,3) or press Enter to skip:")
+    cooked = input("Cooked: ").strip()
+    if cooked:
+        for c in cooked.split(","):
+            c = c.strip()
+            if c.isdigit() and 1 <= int(c) <= len(results):
+                save_to_history(results[int(c) - 1])
+                print(f"  Saved '{results[int(c)-1]['name']}' to your history.")
 
 if __name__ == "__main__":
     main()
